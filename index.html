@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <script src ="https://cdnjs.cloudflare.com/ajax/libs/three.js/108/three.js"></script>
+        <!-- <script src ="./threejs-loader/OBJLoader.js"></script>
+        <script src ="./threejs-loader/MTLLoader.js"></script> -->
+        <script src ="./threejs-loader/GLTFLoader.js"></script>
+        <style type="text/css">
+            body {
+                margin:0px;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            let cube;
+            console.log('Creating scene...');
+            const scene = new THREE.Scene();
+            console.log('Creating light...');
+            const light = new THREE.DirectionalLight('#ffffff',0.9);
+            light.position.set(-20,0,100);
+
+            console.log('Adding light to scene...');
+            scene.add(light);
+
+            console.log('Creating camera...');
+            const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight, 0.1,1000);
+            console.log('Setting camera:window.innerWidth['+window.innerWidth+'] window.innerHeight['+window.innerHeight+'] window.innerWidth/window.innerHeight['+(window.innerWidth/window.innerHeight)+']');
+            
+            console.log('Moving camera...');
+            camera.position.z = 5;
+
+            console.log('Creating renderer...');
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // console.log('Creating objLoader...');
+            // const objLoader = new THREE.OBJLoader();
+            // objLoader.setPath('/blender-files/');
+
+            // console.log('Creating mtlLoader...');
+            // const mtlLoader = new THREE.MTLLoader();
+            // mtlLoader.setPath('/blender-files/');
+
+            // new Promise((resolve) => {
+            //     console.log('Making promise to load cube.mtl...');
+            //     mtlLoader.load('cube.mtl',(materials) => {
+            //         console.log('will resolve the material...');
+            //         resolve(materials);
+            //     })
+            // }).then((materials) => {
+            //     console.log('Preloading material...');
+            //     materials.preload();
+            //     console.log('Setting material on objLoader...');
+            //     objLoader.setMaterials(materials);
+            //     console.log('Loading cube.obj...');
+            //     objLoader.load('cube.obj', (object) => {
+            //         console.log('Assigning cube from object...');
+            //         cube = object;
+            //         //console.log('poof:'+JSON.stringify(cube));
+            //         console.log('Adding object to scene...');
+            //         scene.add(object);
+            //     },
+            //     // onProgress callback
+            //     function ( xhr ) {
+            //         console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+            //     },
+            //     // onError callback
+            //     function ( err ) {
+            //         console.error( 'An error happened' );
+            //     });
+            // });
+
+            const loader = new THREE.GLTFLoader();
+            const url = '/blender-files/odd_cube.glb';
+
+            // Here, 'gltf' is the object that the loader returns to us
+            let outerGLTF;
+            const onLoad = ( gltf ) => {
+                outerGLTF = gltf;
+//                cube = outerGLTF.scene.childen[0];
+                console.log('cube?:['+JSON.stringify(outerGLTF)+']')
+                console.log( gltf.scene.children[0] );
+                cube = gltf.scene.children[0];
+                scene.add(cube);
+                console.log( gltf );
+            };
+
+            loader.load( url, onLoad );
+
+            var counter = 0;
+            var show1 = true;
+            var show2 = true;
+            function render() {
+                counter++;
+                if (counter > 2000) {
+                    throw new Error('Boof');
+                }
+                if (cube) {
+                    cube.rotation.x += 0.01;
+                    cube.rotation.y += 0.01;
+//                    console.log(cube.rotation.y);
+                } else {
+                    console.log('no cube?');
+                }
+                requestAnimationFrame(render);
+                if (show1) {show1 = false; console.log('after req animation frame');}
+                renderer.render(scene, camera);
+                if (show2) {show2 = false; console.log('after renderer.render');}
+            }
+
+            console.log('before render');
+            render();
+            console.log('after render');
+        </script>
+    </body>
+
