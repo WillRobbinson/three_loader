@@ -2,9 +2,10 @@
 <html>
     <head>
         <title></title>
-        <script src ="https://cdnjs.cloudflare.com/ajax/libs/three.js/108/three.js"></script>
+        <!-- <script src ="https://cdnjs.cloudflare.com/ajax/libs/three.js/108/three.js"></script> -->
         <!-- <script src ="./threejs-loader/OBJLoader.js"></script>
         <script src ="./threejs-loader/MTLLoader.js"></script> -->
+        <script src ="./threejs-loader/three.js"></script>
         <script src ="./threejs-loader/GLTFLoader.js"></script>
         <style type="text/css">
             body {
@@ -14,7 +15,7 @@
     </head>
     <body>
         <script>
-            let cube;
+            let w9yards;
             console.log('Creating scene...');
             const scene = new THREE.Scene();
             console.log('Creating light...');
@@ -74,46 +75,90 @@
             // });
 
             const loader = new THREE.GLTFLoader();
-            const url = '/blender-files/odd_cube.glb';
+//            const url = '/blender-files/odd_cube.glb';
+            const url = '/blender-files/simple.glb';
 
             // Here, 'gltf' is the object that the loader returns to us
             let outerGLTF;
+            let ball = null;
+            let astro = null;
+            const mixers = [];
             const onLoad = ( gltf ) => {
                 outerGLTF = gltf;
 //                cube = outerGLTF.scene.childen[0];
-                console.log('cube?:['+JSON.stringify(outerGLTF)+']')
-                console.log( gltf.scene.children[0] );
-                cube = gltf.scene.children[0];
-                scene.add(cube);
-                console.log( gltf );
+//                console.log('cube?:['+JSON.stringify(outerGLTF)+']')
+                console.log('children count['+gltf.scene.children.length+']');
+                console.log('gltf.scene.children[0]=');console.log(gltf.scene.children[0]);
+                w9yards = gltf.scene.children[0];
+                for (let i=0;i<w9yards.children.length;i++) {
+                    let childObj = w9yards.children[i];
+                    if (childObj.name == 'mid_cube') {
+                        ball = childObj;
+                        console.log('We have the ball:');console.log(ball);
+                        const animation = gltf.animations[0];
+                        /*
+                        This looks like it should be animations[2], based on the name,
+                        but then it fails because this is no ball.position in 2, although
+                        this is one on 0.
+                        */
+
+                        const mixer = new THREE.AnimationMixer( ball );
+                        mixers.push( mixer );
+
+                        const action = mixer.clipAction( animation );
+                        action.play();
+                    } else if (childObj.name == 'outer_cube') { //'Astronaut_3') {
+                        astro = childObj;
+                        console.log('We have Astronaut_3:');console.log(astro);
+                        
+                    } else {
+                        console.log('Unexpected name=['+childObj.name+']');console.log(childObj);
+                    }
+                }
+                
+                scene.add(w9yards);
+                w9yards.rotation.y = 0.0;
+                console.log('gltf=');console.log(gltf);
             };
 
             loader.load( url, onLoad );
+            const clock = new THREE.Clock();
 
-            var counter = 0;
+//            var counter = 0;
             var show1 = true;
             var show2 = true;
+            var show3 = true;
             function render() {
-                counter++;
-                if (counter > 2000) {
-                    throw new Error('Boof');
-                }
-                if (cube) {
-                    cube.rotation.x += 0.01;
-                    cube.rotation.y += 0.01;
+//                counter++;
+                // if (counter > 2000) {
+                //     throw new Error('Boof');
+                // }
+                if (w9yards) {
+                    // [ ] TODO uncomment next (2) lines to make everything rotate
+                    // w9yards.rotation.x += 0.01;
+                    // w9yards.rotation.y += 0.01;
 //                    console.log(cube.rotation.y);
                 } else {
                     console.log('no cube?');
                 }
                 requestAnimationFrame(render);
                 if (show1) {show1 = false; console.log('after req animation frame');}
-                renderer.render(scene, camera);
                 if (show2) {show2 = false; console.log('after renderer.render');}
+                update();
+                renderer.render(scene, camera);
             }
 
             console.log('before render');
             render();
             console.log('after render');
+
+            function update() {
+                if (show3) {show3 = false; console.log('In update');}
+                const delta = clock.getDelta();
+                for ( const mixer of mixers ) {
+                    mixer.update( delta );  
+                }
+            }
         </script>
     </body>
 
